@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+	xmlns:cloud="http://schema.cloudfoundry.org/spring"
+	xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd
+                           http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+                           http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+                           http://www.springframework.org/schema/rabbit http://www.springframework.org/schema/rabbit/spring-rabbit-1.0.xsd
+                           http://schema.cloudfoundry.org/spring http://schema.cloudfoundry.org/spring/cloudfoundry-spring-0.7.xsd">
+
+ 	<rabbit:connection-factory id="connectionFactory" host="172.249.0.33" />
+ 	<!--<rabbit:connection-factory id="connectionFactory" host="10.6.20.203" />-->
+	<rabbit:admin connection-factory="connectionFactory" />
+
+<!-- system message config begin -->
+<rabbit:queue name="sysMessQueue" durable="true" />
+	<rabbit:listener-container
+		connection-factory="connectionFactory">
+		<rabbit:listener ref="systemMessageListener" method="listen"
+			queue-names="sysMessQueue" />
+	</rabbit:listener-container>
+
+	<bean id="systemMessageListener" class="com.moretv.message.system.SystemMessageListener">
+		<property name="systemMessageService" ref="systemMessageService"></property>
+	</bean>
+
+	<bean id="systemMessageService" class="com.moretv.service.system.impl.SystemMessageServiceImpl">
+		<property name="systemMessageJedisDao" ref="systemMessageJedisDao"></property>
+	</bean>
+	
+
+<!-- system message config end -->
+
+<!-- personal message config begin -->
+<rabbit:queue name="personalQueue" durable="true"/>
+	<rabbit:listener-container connection-factory="connectionFactory">
+		<rabbit:listener ref="personMessageListener" method="listenCollection" queue-names="personalQueue" />
+	</rabbit:listener-container>
+
+	<bean id="personMessageListener" class="com.moretv.message.personal.PersonMessageListener">
+		<property name="personalMessageService" ref="personalMessageService"></property>
+	</bean>
+	
+	<bean id="personalMessageService" class="com.moretv.service.personal.impl.PersonalMessageServiceImpl">
+		<property name="personalMessageJedisDao" ref="personalMessageJedisDao"></property>
+		<property name="collectDao" ref="collectDao"></property>
+		<property name="historyDao" ref="historyDao"></property>
+	</bean>
+	<bean id="collectDao" class="com.moretv.dao.collect.impl.ICollectDaoImpl">
+        <property name="mongoTemplate" ref="mongoTemplate"></property>
+    </bean>
+    <bean id="historyDao" class="com.moretv.dao.history.impl.IHistoryDaoImpl">
+        <property name="mongoTemplate" ref="mongoTemplate"></property>
+    </bean>
+<!-- personal collect program config end -->
+
+<!-- program message config begin -->
+<rabbit:queue name="programMessQueue" durable="true" />
+	<rabbit:listener-container connection-factory="connectionFactory">
+		<rabbit:listener ref="programMessageListener" method="listenUpdate" queue-names="programMessQueue" />
+	</rabbit:listener-container>
+
+	<bean id="programMessageListener" class="com.moretv.message.program.ProgramMessageListener">
+		<property name="programMessageService" ref="programMessageService"></property>
+	</bean>
+	
+	<bean id="programMessageService" class="com.moretv.service.program.impl.ProgramMessageServiceImpl">
+		<property name="programMessageJedisDao" ref="programMessageJedisDao"></property>
+	</bean>
+<!-- program config end -->
+
+
+</beans>

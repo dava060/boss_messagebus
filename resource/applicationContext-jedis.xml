@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:context="http://www.springframework.org/schema/context"
+	default-autowire="byName" default-lazy-init="true"
+	xsi:schemaLocation="
+       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.1.xsd
+       http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.1.xsd
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd">
+       
+     <bean id="jedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig">
+		<property name="maxActive" value="${redis.messagePool.pool.maxActive}"></property>
+		<property name="maxIdle" value="${redis.messagePool.pool.maxIdle}"></property>
+		<property name="maxWait" value="${redis.messagePool.pool.maxWait}"></property>
+		<property name="testOnBorrow" value="${redis.messagePool.pool.testOnBorrow}"></property>
+	</bean> 
+
+	<bean id="jedisPool" class="redis.clients.jedis.JedisPool">
+		<constructor-arg index="0" ref="jedisPoolConfig" />
+		<constructor-arg index="1" value="${jedis.messagePool.host}"/>
+		<constructor-arg index="2" value="${jedis.messagePool.port}"/>
+		<constructor-arg index="3" value="${jedis.messagePool.timeout}"/>
+		<constructor-arg index="4"><null/></constructor-arg>
+		<constructor-arg index="5" value="${jedis.messagePool.database}"/>
+	</bean>
+	
+	<bean id="systemMessageJedisDao" class="com.moretv.dao.system.impl.SystemMessageJedisDaoImpl">
+		<property name="jedisPool" ref="jedisPool"></property>
+	</bean>
+	
+	<bean id="personalMessageJedisDao" class="com.moretv.dao.personal.impl.PersonalMessageJedisDaoImpl">
+		<property name="jedisPool" ref="jedisPool"></property>
+	</bean>
+	
+	<bean id="programMessageJedisDao" class="com.moretv.dao.program.impl.ProgramMessageJedisDaoImpl">
+		<property name="jedisPool" ref="jedisPool"></property>
+	</bean>
+
+
+	<!--history begin-->
+	<bean id="historyJedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig">
+		<property name="maxActive" value="${redis.hsitory.pool.maxActive}"></property>
+		<property name="maxIdle" value="${redis.hsitory.pool.maxIdle}"></property>
+		<property name="maxWait" value="${redis.hsitory.pool.maxWait}"></property>
+		<property name="testOnBorrow" value="${redis.hsitory.pool.testOnBorrow}"></property>
+	</bean>
+
+	<bean id="historyJedisPool" class="redis.clients.jedis.JedisPool">
+		<constructor-arg index="0" ref="historyJedisPoolConfig" />
+		<constructor-arg index="1" value="${jedis.hsitory.host}"/>
+		<constructor-arg index="2" value="${jedis.hsitory.port}"/>
+		<constructor-arg index="3" value="${jedis.hsitory.timeout}"/>
+		<constructor-arg index="4"><null/></constructor-arg>
+		<constructor-arg index="5" value="${jedis.hsitory.database}"/>
+	</bean>
+	<!--history end-->
+
+	<!--custTag begin-->
+	<bean id="custTagJedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig">
+		<property name="maxActive" value="${redis.custTag.pool.maxActive}"></property>
+		<property name="maxIdle" value="${redis.custTag.pool.maxIdle}"></property>
+		<property name="maxWait" value="${redis.custTag.pool.maxWait}"></property>
+		<property name="testOnBorrow" value="${redis.custTag.pool.testOnBorrow}"></property>
+	</bean>
+
+	<bean id="custTagJedisPool" class="redis.clients.jedis.JedisPool">
+		<constructor-arg index="0" ref="custTagJedisPoolConfig" />
+		<constructor-arg index="1" value="${jedis.custTag.host}"/>
+		<constructor-arg index="2" value="${jedis.custTag.port}"/>
+		<constructor-arg index="3" value="${jedis.custTag.timeout}"/>
+		<constructor-arg index="4"><null/></constructor-arg>
+		<constructor-arg index="5" value="${jedis.custTag.database}"/>
+	</bean>
+	<!--custTag end-->
+
+	<!--metadata begin-->
+	<bean id="metadataJedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig">
+		<property name="maxActive" value="${redis.metadata.pool.maxActive}"></property>
+		<property name="maxIdle" value="${redis.metadata.pool.maxIdle}"></property>
+		<property name="maxWait" value="${redis.metadata.pool.maxWait}"></property>
+		<property name="testOnBorrow" value="${redis.metadata.pool.testOnBorrow}"></property>
+	</bean>
+
+	<bean id="metadataJedisPool" class="redis.clients.jedis.JedisPool">
+		<constructor-arg index="0" ref="metadataJedisPoolConfig" />
+		<constructor-arg index="1" value="${jedis.metadata.host}"/>
+		<constructor-arg index="2" value="${jedis.metadata.port}"/>
+		<constructor-arg index="3" value="${jedis.metadata.timeout}"/>
+		<constructor-arg index="4"><null/></constructor-arg>
+		<constructor-arg index="5" value="${jedis.metadata.database}"/>
+	</bean>
+	<!--metadata end-->
+</beans>
+

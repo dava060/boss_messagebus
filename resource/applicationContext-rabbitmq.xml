@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+	   xsi:schemaLocation="http://www.springframework.org/schema/rabbit
+           http://www.springframework.org/schema/rabbit/spring-rabbit.xsd
+           http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+ 	<rabbit:connection-factory id="connectionFactory" host="${rabbitmq.host}" />
+	<rabbit:admin connection-factory="connectionFactory" />
+
+<!-- system message config begin -->
+<!--<rabbit:queue name="sysMessQueue" durable="true" />
+	<rabbit:listener-container connection-factory="connectionFactory">
+		<rabbit:listener ref="systemMessageListener" method="listen" queue-names="sysMessQueue" />
+	</rabbit:listener-container>
+
+	<bean id="systemMessageListener" class="com.moretv.message.system.SystemMessageListener">
+		<property name="systemMessageService" ref="systemMessageService"></property>
+	</bean>
+
+	<bean id="systemMessageService" class="com.moretv.service.system.impl.SystemMessageServiceImpl">
+		<property name="systemMessageJedisDao" ref="systemMessageJedisDao"></property>
+	</bean>-->
+<!-- system message config end -->
+
+<!-- personal message config begin -->
+<!--<rabbit:queue name="personalQueue" durable="true"/>
+<rabbit:queue name="starAddQueue" durable="true"/>
+	<rabbit:listener-container connection-factory="connectionFactory">
+		<rabbit:listener ref="personMessageListener" method="listenCollection" queue-names="personalQueue" />
+		<rabbit:listener ref="personMessageListener" method="listenStar" queue-names="starAddQueue" />
+	</rabbit:listener-container>
+
+	<bean id="personMessageListener" class="com.moretv.message.personal.PersonMessageListener">
+		<property name="personalMessageService" ref="personalMessageService"></property>
+	</bean>
+
+	<bean id="personalMessageService" class="com.moretv.service.personal.impl.PersonalMessageServiceImpl">
+		<property name="personalMessageJedisDao" ref="personalMessageJedisDao"></property>
+	</bean>-->
+
+<!-- personal collect program config end -->
+
+<!-- program message config begin -->
+<!--<rabbit:queue name="programMessQueue" durable="true" />
+<rabbit:queue name="publishStarAddProgramMessQueue" durable="true" />
+<rabbit:queue name="publishDoubanTagAddProgramMessQueue" durable="true" />-->
+	<!--BOSS系统，会员过期提醒消息-->
+<rabbit:queue name="sendMemberExpiredQueue" durable="true" />
+	<!--BOSS/终端管理系统，日志开关消息，2016-02-02-->
+<rabbit:queue name="terminalLogSwitchMessQueue" durable="true" />
+	<!--BOSS系统，新增加了"会员到期消息"～下一步就要付会员费 2016-04-20【消息体：你的微鲸会员即将于2016-04-20过期，快到帐户中心-微鲸会员续费吧】-->
+<rabbit:queue name="sendMemberEffectiveTimeQueue" durable="true" />
+	<rabbit:listener-container connection-factory="connectionFactory" requeue-rejected="false">
+		<!--<rabbit:listener ref="programMessageListener" method="listenUpdate" queue-names="programMessQueue" />-->
+		<!--<rabbit:listener ref="programMessageListener" method="listenAdd" queue-names="publishStarAddProgramMessQueue" />-->
+		<rabbit:listener ref="programMessageListener" method="listenMemberExpired" queue-names="sendMemberExpiredQueue" />
+		<rabbit:listener ref="programMessageListener" method="listenMemberEffectiveTime" queue-names="sendMemberEffectiveTimeQueue" />
+		<rabbit:listener ref="programMessageListener" method="listen_terminalLogSwitchMessQueue" queue-names="terminalLogSwitchMessQueue" />
+		<!--<rabbit:listener ref="programMessageListener" method="listenTag" queue-names="publishDoubanTagAddProgramMessQueue" />-->
+	</rabbit:listener-container>
+
+	<bean id="programMessageListener" class="com.moretv.message.program.ProgramMessageListener">
+		<property name="programMessageService" ref="programMessageService"></property>
+	</bean>
+
+	<bean id="programMessageService" class="com.moretv.service.program.impl.ProgramMessageServiceImpl">
+		<property name="programMessageJedisDao" ref="programMessageJedisDao"></property>
+		<property name="tagMessageService" ref="tagMessageService"></property>
+		<property name="messageable" ref="messageable"></property>
+	</bean>
+
+	<bean name="messageable" class="com.moretv.common.keepConnect.impl.SendMessage"></bean>
+<!-- program config end -->
+
+	<!-- del history config begin -->
+	<!--<rabbit:queue name="historyQueue" durable="true" />
+	<rabbit:listener-container connection-factory="connectionFactory">
+		<rabbit:listener ref="historyListener" method="listenDelHistory" queue-names="historyQueue" />
+	</rabbit:listener-container>
+
+	<bean id="historyListener" class="com.moretv.message.history.HistoryListener">
+		<property name="historyMessageService" ref="historyMessageService"></property>
+	</bean>
+
+	<bean id="historyMessageService" class="com.moretv.service.history.impl.HistoryMessageServiceImpl">
+		<property name="jedisPool" ref="historyJedisPool"></property>
+	</bean>-->
+	<!-- del history config end -->
+
+
+	<!--tag begin-->
+	<!--<rabbit:queue name="tagAddQueue" durable="true"/>
+	<rabbit:queue name="inputCustTagQueue" durable="true" />
+	<rabbit:listener-container connection-factory="connectionFactory">
+		<rabbit:listener ref="tagMessageListener" method="listenTag" queue-names="tagAddQueue" />
+		<rabbit:listener ref="tagMessageListener" method="listenCustTag" queue-names="inputCustTagQueue" />
+	</rabbit:listener-container>
+
+	<bean id="tagMessageListener" class="com.moretv.message.tag.TagMessageListener">
+		<property name="tagMessageService" ref="tagMessageService"></property>
+	</bean>
+	-->
+
+	<bean id="tagMessageService" class="com.moretv.service.tag.impl.TagMessageServiceImpl">
+		<property name="personalMessageJedisDao" ref="personalMessageJedisDao"></property>
+		<property name="custTagJedisPool" ref="custTagJedisPool"></property>
+		<property name="metadataJedisPool" ref="metadataJedisPool"></property>
+		<property name="programMessageService" ref="programMessageService"></property>
+
+		<property name="latch">
+			<value>${tags.latch}</value>
+		</property>
+	</bean>
+    <!--tag end-->
+
+</beans>

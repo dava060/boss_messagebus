@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="GB2312"?>
+<project name="message_bus" basedir="." default="zip">
+    <property file="build.properties"/>
+    <property name="src.dir" value="../src"/>
+    <property name="build.dir" value="${basedir}/build"/>
+    <property name="build.classes.dir" value="${build.dir}/classes"/>
+    <property name="lib.dir" value="../exteral-jar"/>
+    <property name="resource.dir" value="../resource"/>
+
+    <property name="dest.dir" value="dist"/>
+    <property name="zip.file" value="message_bus.zip"/>
+    <property name="mainClass" value="com.moretv.App"/>
+    <property name="prepareMainClass" value="ant.Prepare"/>
+    <property name="version" value="1.0"/>
+    <property name="jar.file" value="message_bus.jar"/>
+
+    <path id="run.App.classpath">
+        <fileset dir="${lib.dir}">
+            <include name="**/*.jar"/>
+        </fileset>
+    </path>
+    <path id="message-classpath">
+        <fileset dir="${lib.dir}" includes="**/*.jar" />
+    </path>
+
+    <target name="prepareLib" depends="init,compile,jar">
+        <jar jarfile="${dest.dir}/temp.jar" basedir="${build.classes.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="ant.Prepare"/>
+            </manifest>
+        </jar>
+        <java jar="${dest.dir}/temp.jar" fork="true">
+            <arg value="${lib.dir}"/>
+            <arg value="prepare.properties"/>
+        </java>
+    </target>
+
+    <target name="init">
+        <mkdir dir="${build.dir}"/>
+        <mkdir dir="${dest.dir}"/>
+    </target>
+
+    <target name="compile">
+        <mkdir dir="${build.classes.dir}"/>
+        <javac destdir="${build.classes.dir}" source="1.7" debug="true" encoding="utf-8">
+            <src path="${src.dir}" />
+            <classpath refid="run.App.classpath"/>
+        </javac>
+        <copy todir="${build.classes.dir}">
+            <fileset dir="${src.dir}">
+                <include name="**/*.xml"/>
+                <include name="**/*.properties"/>
+                <include name="**/*.groovy"/>
+            </fileset>
+        </copy>
+        <copy todir="${build.classes.dir}">
+            <fileset dir="${resource.dir}">
+                <include name="**/*.xml"/>
+                <include name="**/*.properties"/>
+                <include name="**/*.groovy"/>
+            </fileset>
+        </copy>
+    </target>
+
+    <target name="create-jar">
+        <pathconvert property="mf.classpath" pathsep=" " description="把上面定义的path转换成property，path中jar包的路径用空格分开">
+            <mapper>
+                <chainedmapper>
+                    <!-- 移除绝对路径 -->
+                    <flattenmapper />
+                    <!-- 加上lib前缀 -->
+                    <globmapper from="*" to="lib/*" />
+                </chainedmapper>
+            </mapper>
+            <path refid="message-classpath" description="path引用了上面定义的queue-classpath" />
+        </pathconvert>
+        <jar jarfile="${dest.dir}/${jar.file}" basedir="${build.classes.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="${mainClass}"/>
+                <attribute name="Class-Path" value="${mf.classpath}"/>
+                <section name="common">
+                    <attribute name="Specification-Version" value="${version}"/>
+                    <attribute name="Implementation-Title" value="common"/>
+                </section>
+            </manifest>
+        </jar>
+    </target>
+
+    <property file="prepare.properties"/>
+    <target name="zip" depends="jar">
+        <copy todir="${dest.dir}">
+            <fileset dir="${src.dir}">
+                <include name="*.properties"/>
+            </fileset>
+        </copy>
+
+        <copy todir="${dest.dir}/lib">
+            <fileset dir="${lib.dir}">
+                <include name="**/*.jar"/>
+            </fileset>
+            <fileset dir="${dest.dir}">
+                <include name="*.jar"/>
+            </fileset>
+        </copy>
+
+        <copy todir="${dest.dir}/config">
+            <fileset dir="${resource.dir}">
+                <include name="**/*.xml"/>
+                <include name="**/*.properties"/>
+                <include name="**/*.groovy"/>
+            </fileset>
+        </copy>
+
+        <!--启动脚本-->
+        <copy todir="${dest.dir}/">
+            <fileset dir="../">
+                <include name="**/*.sh"/>
+            </fileset>
+        </copy>
+
+        <zip destfile="${zip.file}">
+            <fileset dir="${dest.dir}"/>
+        </zip>
+        <delete dir="${build.dir}"/>
+        <delete dir="${dest.dir}"/>
+    </target>
+
+    <target name="jar" depends="init, compile, create-jar"/>
+
+</project>
